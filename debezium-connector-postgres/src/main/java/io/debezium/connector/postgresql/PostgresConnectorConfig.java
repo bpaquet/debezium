@@ -911,7 +911,7 @@ public class PostgresConnectorConfig extends RelationalDatabaseConnectorConfig {
             .withDefault(org.postgresql.Driver.class.getName())
             .withImportance(Importance.LOW)
             .withValidation(Field::isClassName)
-            .withDescription("JDBC Driver class name used to connect to the MySQL database server.");
+            .withDescription("JDBC Driver class name used to connect to the PostgreSQL database server.");
 
     public static final Field JDBC_PROTOCOL = Field.create(DATABASE_CONFIG_PREFIX + "protocol")
             .withDisplayName("JDBC Protocol")
