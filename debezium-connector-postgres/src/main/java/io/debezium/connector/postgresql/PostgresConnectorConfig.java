@@ -922,6 +922,15 @@ public class PostgresConnectorConfig extends RelationalDatabaseConnectorConfig {
             .withImportance(Importance.LOW)
             .withDescription("JDBC protocol to use with the driver.");
 
+    public static final Field JDBC_URL_SUFFIX = Field.create(DATABASE_CONFIG_PREFIX + "jdbc_url_suffix")
+            .withDisplayName("JDBC URL suffix")
+            .withType(Type.STRING)
+            .withGroup(Field.createGroupEntry(Field.Group.CONNECTION, 43))
+            .withWidth(Width.MEDIUM)
+            .withDefault("")
+            .withImportance(Importance.LOW)
+            .withDescription("String to be suffixed to the JDBC Url.");
+
     public static final Field SOURCE_INFO_STRUCT_MAKER = CommonConnectorConfig.SOURCE_INFO_STRUCT_MAKER
             .withDefault(PostgresSourceInfoStructMaker.class.getName());
 
@@ -937,6 +946,8 @@ public class PostgresConnectorConfig extends RelationalDatabaseConnectorConfig {
 
     private final String driver;
 
+    private final String jdbcUrlSuffix;
+    
     public PostgresConnectorConfig(Configuration config) {
         super(
                 config,
@@ -957,6 +968,7 @@ public class PostgresConnectorConfig extends RelationalDatabaseConnectorConfig {
         final var replicaIdentityMapping = config.getString(REPLICA_IDENTITY_AUTOSET_VALUES);
         this.replicaIdentityMapper = (replicaIdentityMapping != null) ? new ReplicaIdentityMapper(replicaIdentityMapping) : null;
         this.protocol = config.getString(JDBC_PROTOCOL);
+        this.jdbcUrlSuffix = config.getString(JDBC_URL_SUFFIX);
         this.driver = config.getString(JDBC_DRIVER);
     }
 
@@ -1060,6 +1072,10 @@ public class PostgresConnectorConfig extends RelationalDatabaseConnectorConfig {
         return driver;
     }
 
+    public String getJdbcUrlSuffix() {
+        return jdbcUrlSuffix;
+    }
+
     @Override
     public byte[] getUnavailableValuePlaceholder() {
         String placeholder = getConfig().getString(UNAVAILABLE_VALUE_PLACEHOLDER);
@@ -1114,7 +1130,8 @@ public class PostgresConnectorConfig extends RelationalDatabaseConnectorConfig {
                     SKIPPED_OPERATIONS,
                     SHOULD_FLUSH_LSN_IN_SOURCE_DB,
                     JDBC_DRIVER,
-                    JDBC_PROTOCOL)
+                    JDBC_PROTOCOL,
+                    JDBC_URL_SUFFIX)
             .events(
                     INCLUDE_UNKNOWN_DATATYPES,
                     SOURCE_INFO_STRUCT_MAKER)

@@ -75,6 +75,8 @@ public class PostgresConnection extends JdbcConnection {
             + JdbcConfiguration.PORT + "}/${" + JdbcConfiguration.DATABASE + "}";
     private final String protocol;
 
+    private final String jdbcUrlSuffix;
+
     /**
      * Obtaining a replication slot may fail if there's a pending transaction. We're retrying to get a slot for 30 min.
      */
@@ -85,8 +87,8 @@ public class PostgresConnection extends JdbcConnection {
     private final TypeRegistry typeRegistry;
     private final PostgresDefaultValueConverter defaultValueConverter;
 
-    public static final ConnectionFactory buildConnectionFactory(String driverClassName, String protocol) {
-        return JdbcConnection.patternBasedFactory(getUrlPatternWithProtocol(protocol),
+    public static final ConnectionFactory buildConnectionFactory(String driverClassName, String protocol, String jdbcUrlSuffix) {
+        return JdbcConnection.patternBasedFactory(getUrlPatternWithProtocol(protocol, jdbcUrlSuffix),
                 driverClassName,
                 PostgresConnection.class.getClassLoader(), JdbcConfiguration.PORT.withDefault(PostgresConnectorConfig.PORT.defaultValueAsString()));
     }
@@ -102,7 +104,7 @@ public class PostgresConnection extends JdbcConnection {
      * @param connectionUsage a symbolic name of the connection to be tracked in monitoring tools
      */
     public PostgresConnection(JdbcConfiguration config, PostgresValueConverterBuilder valueConverterBuilder, String connectionUsage) {
-        this(config, valueConverterBuilder, connectionUsage, DEFAULT_DRIVER_CLASS_NAME, DEFAULT_PROTOCOL);
+        this(config, valueConverterBuilder, connectionUsage, DEFAULT_DRIVER_CLASS_NAME, DEFAULT_PROTOCOL, "");
     }
 
     /**
@@ -116,12 +118,14 @@ public class PostgresConnection extends JdbcConnection {
      * @param connectionUsage a symbolic name of the connection to be tracked in monitoring tools
      * @param driverClassName the jdbc driver class name to use
      * @param protocol the jdbc protocol to use
+     * @param jdbcUrlSuffix suffix for jdbc url
      */
     public PostgresConnection(JdbcConfiguration config, PostgresValueConverterBuilder valueConverterBuilder, String connectionUsage, String driverClassName,
-                              String protocol) {
-        super(addDefaultSettings(config, connectionUsage), buildConnectionFactory(driverClassName, protocol), PostgresConnection::validateServerVersion, "\"", "\"");
+                              String protocol, String jdbcUrlSuffix) {
+        super(addDefaultSettings(config, connectionUsage), buildConnectionFactory(driverClassName, protocol, jdbcUrlSuffix), PostgresConnection::validateServerVersion, "\"", "\"");
 
         this.protocol = protocol;
+        this.jdbcUrlSuffix = jdbcUrlSuffix;
 
         if (Objects.isNull(valueConverterBuilder)) {
             this.typeRegistry = null;
@@ -142,11 +146,13 @@ public class PostgresConnection extends JdbcConnection {
      * @param connectionUsage a symbolic name of the connection to be tracked in monitoring tools
      * @param driverClassName the jdbc driver class name to use
      * @param protocol the jdbc protocol to use
+     * @param jdbcUrlSuffix suffix for jdbc url
      */
-    public PostgresConnection(PostgresConnectorConfig config, TypeRegistry typeRegistry, String connectionUsage, String driverClassName, String protocol) {
-        super(addDefaultSettings(config.getJdbcConfig(), connectionUsage), buildConnectionFactory(driverClassName, protocol), PostgresConnection::validateServerVersion,
+    public PostgresConnection(PostgresConnectorConfig config, TypeRegistry typeRegistry, String connectionUsage, String driverClassName, String protocol, String jdbcUrlSuffix) {
+        super(addDefaultSettings(config.getJdbcConfig(), connectionUsage), buildConnectionFactory(driverClassName, protocol, jdbcUrlSuffix), PostgresConnection::validateServerVersion,
                 "\"", "\"");
         this.protocol = protocol;
+        this.jdbcUrlSuffix = jdbcUrlSuffix;
         if (Objects.isNull(typeRegistry)) {
             this.typeRegistry = null;
             this.defaultValueConverter = null;
@@ -166,7 +172,7 @@ public class PostgresConnection extends JdbcConnection {
      * @param connectionUsage a symbolic name of the connection to be tracked in monitoring tools
      */
     public PostgresConnection(JdbcConfiguration config, String connectionUsage) {
-        this(config, null, connectionUsage, DEFAULT_DRIVER_CLASS_NAME, DEFAULT_PROTOCOL);
+        this(config, null, connectionUsage, DEFAULT_DRIVER_CLASS_NAME, DEFAULT_PROTOCOL, "");
     }
 
     static JdbcConfiguration addDefaultSettings(JdbcConfiguration configuration, String connectionUsage) {
@@ -183,11 +189,11 @@ public class PostgresConnection extends JdbcConnection {
      * @return a {@code String} where the variables in {@code urlPattern} are replaced with values from the configuration
      */
     public String connectionString() {
-        return connectionString(getUrlPatternWithProtocol(this.protocol));
+        return connectionString(getUrlPatternWithProtocol(this.protocol, this.jdbcUrlSuffix));
     }
 
-    public static String getUrlPatternWithProtocol(String protocol) {
-        return "jdbc:" + protocol + "://" + URL_PATTERN_WITHOUT_PROTOCOL;
+    public static String getUrlPatternWithProtocol(String protocol, String jdbcUrlSuffix) {
+        return "jdbc:" + protocol + "://" + URL_PATTERN_WITHOUT_PROTOCOL + jdbcUrlSuffix;
     }
 
     /**
