@@ -138,7 +138,7 @@ public final class TestHelper {
      * @return the PostgresConnection instance; never null
      */
     public static PostgresConnection create() {
-        return new PostgresConnection(defaultJdbcConfig(), CONNECTION_TEST);
+        return new PostgresConnection(defaultJdbcConfig(), CONNECTION_TEST, PostgresConnection.DEFAULT_DRIVER_CLASS_NAME, PostgresConnection.DEFAULT_PROTOCOL, "");
     }
 
     /**
@@ -163,7 +163,8 @@ public final class TestHelper {
      * @return the PostgresConnection instance; never null
      */
     public static PostgresConnection create(String appName) {
-        return new PostgresConnection(JdbcConfiguration.adapt(defaultJdbcConfig().edit().with("ApplicationName", appName).build()), CONNECTION_TEST);
+        return new PostgresConnection(JdbcConfiguration.adapt(defaultJdbcConfig().edit().with("ApplicationName", appName).build()), CONNECTION_TEST,
+                PostgresConnection.DEFAULT_DRIVER_CLASS_NAME, PostgresConnection.DEFAULT_PROTOCOL, "");
     }
 
     /**

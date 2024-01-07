@@ -947,7 +947,7 @@ public class PostgresConnectorConfig extends RelationalDatabaseConnectorConfig {
     private final String driver;
 
     private final String jdbcUrlSuffix;
-    
+
     public PostgresConnectorConfig(Configuration config) {
         super(
                 config,

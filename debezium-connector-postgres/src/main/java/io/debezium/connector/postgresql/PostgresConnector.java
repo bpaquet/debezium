@@ -88,7 +88,8 @@ public class PostgresConnector extends RelationalBaseSourceConnector {
         final PostgresConnectorConfig postgresConfig = new PostgresConnectorConfig(config);
         final ConfigValue hostnameValue = configValues.get(RelationalDatabaseConnectorConfig.HOSTNAME.name());
         // Try to connect to the database ...
-        try (PostgresConnection connection = new PostgresConnection(postgresConfig.getJdbcConfig(), PostgresConnection.CONNECTION_VALIDATE_CONNECTION)) {
+        try (PostgresConnection connection = new PostgresConnection(postgresConfig.getJdbcConfig(), PostgresConnection.CONNECTION_VALIDATE_CONNECTION,
+                postgresConfig.getDriver(), postgresConfig.getProtocol(), postgresConfig.getJdbcUrlSuffix())) {
             try {
                 // Prepare connection without initial statement execution
                 connection.connection(false);
@@ -173,7 +174,8 @@ public class PostgresConnector extends RelationalBaseSourceConnector {
     @Override
     public List<TableId> getMatchingCollections(Configuration config) {
         PostgresConnectorConfig connectorConfig = new PostgresConnectorConfig(config);
-        try (PostgresConnection connection = new PostgresConnection(connectorConfig.getJdbcConfig(), PostgresConnection.CONNECTION_GENERAL)) {
+        try (PostgresConnection connection = new PostgresConnection(connectorConfig.getJdbcConfig(), PostgresConnection.CONNECTION_GENERAL, connectorConfig.getDriver(),
+                connectorConfig.getProtocol(), connectorConfig.getJdbcUrlSuffix())) {
             return connection.readTableNames(connectorConfig.databaseName(), null, null, new String[]{ "TABLE" }).stream()
                     .filter(tableId -> connectorConfig.getTableFilters().dataCollectionFilter().isIncluded(tableId))
                     .collect(Collectors.toList());
